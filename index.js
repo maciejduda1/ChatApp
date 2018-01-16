@@ -29,7 +29,7 @@ io.on('connection', function(socket){
 			users: userService.getAllUsers()
 		});
 	});
-/*
+
   	socket.on('disconnect', () => {
     	userService.removeUser(socket.id);
     	socket.broadcast.emit('update', {
@@ -38,35 +38,23 @@ io.on('connection', function(socket){
   	});
 
   	socket.on('message', function(message){
+  		const d = new Date();
+  		const messageDate = '[' + d.getHours() + ' : ' + d.getMinutes() + ' : ' + d.getSeconds() +']';
+  		//console.log(message);
     	const {name} = userService.getUserById(socket.id);
-    	socket.broadcast.emit('message', {
+    	io.emit('message', {
       		text: message.text,
-      		from: name
+      		from: name,
+      		time: messageDate
     	});
  	});
-*/
+ 	
+ 	socket.on('delete', function (time, text) {
+ 		console.log('time: ' + time);
+ 		console.log('text: ' + text);
+ 		io.emit('deleteThis', time, text);	
+ 	});
 });
-
-io.on('connection', function(socket) {
-  socket.on('disconnect', () => {
-    userService.removeUser(socket.id);
-    socket.broadcast.emit('update', {
-      users: userService.getAllUsers()
-    });
-  });
-});
-
-io.on('connection', function(socket) {
-  socket.on('message', function(message){
-    const {name} = userService.getUserById(socket.id);
-    socket.broadcast.emit('message', {
-      text: message.text,
-      from: name
-    });
-  });
-
-});
-
 
 server.listen(3000, function(){
 	console.log('listening on *:3000');

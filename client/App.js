@@ -9,7 +9,7 @@ import UsersList from './UsersList';
 import UserForm from './UserForm';
 
 
-const socket = io('/');
+const socket = io('http://localhost:3000');
 
 class App extends Component {
 	constructor(props) {
@@ -20,6 +20,7 @@ class App extends Component {
 	componentDidMount() {
 		socket.on('message', message => this.messageReceive(message));
 		socket.on('update', ({users}) => this.chatUpdate(users));
+		socket.on('deleteThis', (time, text) => this.messageDeleted(time, text)); 
 	}
 
 	messageReceive(message) {
@@ -32,9 +33,9 @@ class App extends Component {
 	}
 
 	handleMessageSubmit(message) {
-		const messages = [message, ...this.state.messages];
-		this.setState({messages});
-		socket.emit('message', message);
+		//const messages = [message, ...this.state.messages];
+		//this.setState({messages});
+		socket.emit('message', message );
 	}
 
 	handleUserSubmit(name) {
@@ -43,6 +44,19 @@ class App extends Component {
 		socket.emit('join', name);
 	}
 
+	messageDeleted(time, text) {
+		console.log('new time + text:' + time + text);
+		const remainedMessages = this.state.messages.filter( (message) => {if (message.time !== time && message.text !== text){
+			return message
+		}});
+
+		this.setState({messages: remainedMessages})
+	}
+
+	handleMessageDelete(time, text) {
+		console.log('time + text App.js: ' + time + text);
+		socket.emit('delete', time, text);
+	}
 	
 	
 	render() {
@@ -67,6 +81,8 @@ class App extends Component {
 					<div className={styles.MessageWrapper}>
 						<MessageList
 							messages = {this.state.messages}
+							name = {this.state.name}
+							delete = { (time, text) => this.handleMessageDelete(time, text)}
 						/>
 						<MessageForm
 							onMessageSubmit = { message => this.handleMessageSubmit(message)}
@@ -81,8 +97,6 @@ class App extends Component {
 	renderUserForm() {
 		return (<UserForm onUserSubmit = {name => this.handleUserSubmit(name)}/>);
 	}
-
-
-
 };
+
 export default App;
